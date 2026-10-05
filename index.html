@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内墙饰面砖排砖实训 · 交互课件</title>
+<style>
+  :root{
+    --bg:#0f1720; --panel:#16212c; --panel2:#1d2b38; --line:#2b3d4d;
+    --ink:#e8f0f7; --sub:#94a9bb; --accent:#29b6f6; --accent2:#26c6a4;
+    --warn:#e5484d; --warn-bg:#3a1a1d; --ok:#26c6a4;
+    --tile:#dbe7f0; --tile2:#c7d8e6; --mortar:#8fa7ba;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 600px at 20% 0%,#17232f 0%,#0f1720 60%);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:20px 20px 60px}
+  header.top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    padding:14px 0 18px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+  header.top h1{font-size:22px;font-weight:700;letter-spacing:.5px}
+  header.top .badge{font-size:12px;color:#06222e;background:linear-gradient(135deg,var(--accent2),var(--accent));
+    padding:3px 10px;border-radius:20px;font-weight:700;}
+  header.top .std{font-size:12.5px;color:var(--sub);margin-left:auto;text-align:right}
+  .layout{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
+  @media (max-width:920px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px}
+  .card h3{font-size:14px;color:var(--accent);letter-spacing:.6px;margin-bottom:12px;
+    display:flex;align-items:center;gap:8px;font-weight:700}
+  .card h3::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--accent)}
+  .ctrl{margin-bottom:16px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--sub);margin-bottom:7px}
+  .ctrl label b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums}
+  .ctrl label b span{font-size:11px;color:var(--sub);font-weight:400;margin-left:2px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:4px;
+    background:linear-gradient(90deg,var(--accent) var(--pct,50%),#2b3d4d var(--pct,50%));outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:#fff;border:3px solid var(--accent);cursor:grab;box-shadow:0 2px 8px rgba(41,182,246,.5);}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab;}
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;padding:9px 6px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--sub);font-size:12.5px;cursor:pointer;transition:.18s;font-family:inherit;font-weight:600;}
+  .seg button.on{background:linear-gradient(135deg,rgba(41,182,246,.22),rgba(38,198,164,.22));color:var(--ink);border-color:var(--accent)}
+  .seg button:hover{border-color:var(--accent)}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .presets button{font-family:inherit;font-size:12px;padding:6px 11px;border-radius:20px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--sub);cursor:pointer;transition:.18s;}
+  .presets button:hover{color:var(--ink);border-color:var(--accent2)}
+  .stage{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+    background:var(--panel);transition:box-shadow .25s,border-color .25s}
+  .stage.danger{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn),0 0 34px rgba(229,72,77,.35)}
+  .stage.warn{border-color:#ffb454;box-shadow:0 0 0 1px #ffb454,0 0 30px rgba(255,180,84,.28)}
+  .stage.danger .grid-bg rect{fill:#2a1518}
+  .stage-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .stage-head .tag{font-size:12px;color:var(--sub);padding:3px 10px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
+  .stage-head .spacer{flex:1}
+  .verdict{font-size:13.5px;font-weight:800;padding:5px 14px;border-radius:8px;letter-spacing:.5px}
+  .verdict.ok{color:#062b24;background:linear-gradient(135deg,#5ee7c4,#26c6a4)}
+  .verdict.bad{color:#fff;background:linear-gradient(135deg,#ff6b6f,#e5484d);animation:pulse 1.1s infinite}
+  .verdict.warn{color:#2a2100;background:linear-gradient(135deg,#ffd76b,#ffc107)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}50%{box-shadow:0 0 0 8px rgba(229,72,77,0)}}
+  svg#stage-svg{display:block;width:100%;height:auto;background:#0c141c}
+  .readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+  .ro{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .ro .k{font-size:11.5px;color:var(--sub);letter-spacing:.3px}
+  .ro .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+  .ro .v small{font-size:11px;color:var(--sub);font-weight:500;margin-left:2px}
+  .ro.hl{border-color:var(--accent);background:linear-gradient(180deg,rgba(41,182,246,.10),transparent)}
+  .ro.bad{border-color:var(--warn);background:var(--warn-bg)}
+  .ro.bad .v{color:#ff9a9d}
+  .ro.good .v{color:#5ee7c4}
+  .alertbox{margin-top:14px;border-radius:12px;padding:13px 16px;font-size:13.5px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--sub);display:none;}
+  .alertbox.show{display:block}
+  .alertbox.bad{border-color:var(--warn);background:var(--warn-bg);color:#ffc9cb}
+  .alertbox.good{border-color:#1f6b5a;background:rgba(38,198,164,.10);color:#a9f0dd}
+  .alertbox .t{font-weight:800;font-size:14px;margin-bottom:3px;color:var(--ink)}
+  .alertbox.bad .t{color:#ff9a9d}
+  .alertbox.good .t{color:#5ee7c4}
+  .quiz-wrap{margin-top:28px}
+  .quiz-wrap h2{font-size:17px;margin-bottom:4px}
+  .quiz-wrap .desc{font-size:13px;color:var(--sub);margin-bottom:16px}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .q .qh{font-size:14.5px;font-weight:700;margin-bottom:4px;display:flex;gap:9px}
+  .q .qh .no{color:var(--accent);font-variant-numeric:tabular-nums}
+  .q .qbody{font-size:13.5px;color:#cfe0ee;margin:8px 0 12px;background:var(--panel2);
+    border-left:3px solid var(--line);padding:10px 13px;border-radius:0 8px 8px 0}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 13px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:13.5px;transition:.15s;}
+  .opt:hover{border-color:var(--accent)}
+  .opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:transparent;transition:.15s}
+  .opt.sel{border-color:var(--accent);background:rgba(41,182,246,.10)}
+  .opt.sel .dot{border-color:var(--accent);background:var(--accent);color:#062230}
+  .opt.right{border-color:var(--ok);background:rgba(38,198,164,.13)}
+  .opt.right .dot{border-color:var(--ok);background:var(--ok);color:#062b24}
+  .opt.wrong{border-color:var(--warn);background:var(--warn-bg)}
+  .opt.wrong .dot{border-color:var(--warn);background:var(--warn);color:#fff}
+  .opt.locked{cursor:default;opacity:.96}
+  .fb{margin-top:11px;font-size:13px;border-radius:9px;padding:10px 13px;display:none}
+  .fb.show{display:block}
+  .fb.right{border:1px solid #1f6b5a;background:rgba(38,198,164,.10);color:#a9f0dd}
+  .fb.wrong{border:1px solid var(--warn);background:var(--warn-bg);color:#ffc9cb}
+  .fb b{color:var(--ink)}
+  .score{position:sticky;bottom:0;margin-top:18px;padding:13px 18px;border-radius:12px;
+    background:rgba(22,33,44,.92);backdrop-filter:blur(8px);border:1px solid var(--line);
+    display:flex;align-items:center;gap:14px;font-size:13.5px}
+  .score .big{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .score .rst{margin-left:auto;font-family:inherit;font-size:12.5px;padding:7px 15px;border-radius:20px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--sub);cursor:pointer}
+  .score .rst:hover{color:var(--ink);border-color:var(--accent)}
+  .foot{margin-top:26px;font-size:11.5px;color:#5f7284;text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>内墙饰面砖排砖 · 交互实训</h1>
+    <span class="badge">拖动参数 · 实时出图</span>
+    <div class="std">依据《建筑装饰施工技术（第二版）》P223（3）<br>非整砖不得小于 1/4 砖</div>
+  </header>
+
+  <div class="layout">
+
+    <div class="card">
+      <h3>参数调节</h3>
+
+      <div class="ctrl">
+        <label>墙面净长 L <b><span id="vL">3600</span><span>mm</span></b></label>
+        <input type="range" id="L" min="1200" max="6000" step="10" value="3600">
+      </div>
+
+      <div class="ctrl">
+        <label>面砖长度 a <b><span id="va">300</span><span>mm</span></b></label>
+        <input type="range" id="a" min="100" max="800" step="10" value="300">
+      </div>
+
+      <div class="ctrl">
+        <label>面砖宽度 b <b><span id="vb">600</span><span>mm</span></b></label>
+        <input type="range" id="b" min="100" max="900" step="10" value="600">
+      </div>
+
+      <div class="ctrl">
+        <label>灰缝宽度 j <b><span id="vj">2</span><span>mm</span></b></label>
+        <input type="range" id="j" min="0" max="10" step="0.5" value="2">
+      </div>
+
+      <div class="ctrl">
+        <label>起铺方式</label>
+        <div class="seg" id="segMode">
+          <button data-m="corner" class="on">阳角开始（自下而上）</button>
+          <button data-m="center">中间开始（分中）</button>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <label>管根 / 槽盒</label>
+        <div class="seg" id="segPipe">
+          <button data-p="0" class="on">无管根</button>
+          <button data-p="1">有管根（套割）</button>
+        </div>
+      </div>
+
+      <div class="ctrl" id="pipePosWrap" style="display:none">
+        <label>管根中心位置 <b><span id="vp">50</span><span>% 墙长</span></b></label>
+        <input type="range" id="ppos" min="8" max="92" step="1" value="50">
+      </div>
+
+      <div class="ctrl" style="margin-bottom:6px">
+        <label>快捷参数组</label>
+        <div class="presets" id="presets"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="stage" id="stage">
+        <div class="stage-head">
+          <span class="tag" id="tagMode">阳角起铺</span>
+          <span class="tag" id="tagGeo">砖 300×600</span>
+          <span class="tag" id="tagJ">缝 2mm</span>
+          <span class="spacer"></span>
+          <span class="verdict ok" id="verdict">合格</span>
+        </div>
+        <svg id="stage-svg" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="readouts">
+        <div class="ro hl">
+          <div class="k" id="roEndK">末块非整砖宽度（阳角起始）</div>
+          <div class="v" id="roEnd">—<small>mm</small></div>
+        </div>
+        <div class="ro">
+          <div class="k">合格阀值 = 砖长 a ÷ 4</div>
+          <div class="v" id="roThr">—<small>mm</small></div>
+        </div>
+        <div class="ro">
+          <div class="k">整砖块数 / 总块数</div>
+          <div class="v" id="roCount">—</div>
+        </div>
+        <div class="ro">
+          <div class="k">纵向列数（按砖宽 b）</div>
+          <div class="v" id="roRows">—<small>列</small></div>
+        </div>
+      </div>
+
+      <div class="alertbox" id="alertbox">
+        <div class="t" id="alertTitle"></div>
+        <div id="alertBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-wrap">
+    <h2>判断练习（<span id="qTotal">7</span> 题）</h2>
+    <div class="desc">依据「非整砖 ≥ 1/4 砖长」「管根、槽盒处整砖套割」判定下列排砖方案是否合格。选定后立即判分并给出解析。</div>
+    <div id="quiz"></div>
+    <div class="score">
+      <span>已作答 <b id="done">0</b>/<span id="qTotal2">7</span></span>
+      <span>正确 <b id="correct" style="color:#5ee7c4">0</b></span>
+      <span class="big" id="grade">—</span>
+      <button class="rst" id="resetQuiz">重做全部</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    内墙饰面砖排砖交互课件 · 零依赖单文件 · 可离线打开<br>
+    施工要点：非整砖不得小于 1/4 砖长；阳角起铺自下而上；管根、槽盒处整砖套割。
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+
+  var S = { L:3600, a:300, b:600, j:2, mode:'corner', pipe:false, ppos:50 };
+  var $ = function(id){ return document.getElementById(id); };
+
+  function computeLayout(s){
+    var pitchX = s.a + s.j;
+    var tiles = [];
+    var i, x;
+
+    if(s.mode === 'corner'){
+      for(x = 0; x < s.L - 1e-6; x += pitchX){
+        var w = Math.min(s.a, s.L - x);
+        tiles.push({ x:x, w:w, full: Math.abs(w - s.a) < 1e-6 });
+      }
+    } else {
+      var m = 0, wBest = null;
+      while(true){
+        var ww = (s.L - m*s.a - (m+1)*s.j) / 2;
+        if(ww <= 1e-6) break;
+        if(ww <= s.a + 1e-6){ wBest = { m:m, w:ww }; }
+        m++;
+      }
+      if(wBest === null){
+        tiles.push({ x:0, w:s.L, full:false });
+      } else {
+        var mm = wBest.m, ew = wBest.w;
+        var cx = 0;
+        tiles.push({ x:cx, w:ew, full:false });
+        cx += ew + s.j;
+        for(i=0;i<mm;i++){
+          tiles.push({ x:cx, w:s.a, full:true });
+          cx += s.a + s.j;
+        }
+        tiles.push({ x:cx, w:ew, full:false });
+      }
+    }
+
+    var pitchY = s.b + s.j;
+    var wallH = 3000;
+    var cols = Math.floor((wallH + s.j) / pitchY);
+    if(cols < 1) cols = 1;
+
+    var endW, endIdx, endLabel;
+    if(s.mode === 'corner'){
+      var last = tiles[tiles.length-1];
+      endW = last.w;
+      endIdx = tiles.length-1;
+      endLabel = '末块非整砖宽度（阳角起始端）';
+    } else {
+      var fw = tiles[0].w, lw = tiles[tiles.length-1].w;
+      endW = Math.min(fw, lw);
+      endIdx = (fw <= lw) ? 0 : tiles.length-1;
+      endLabel = '较窄一端非整砖宽度（中间起始）';
+    }
+
+    var thr = s.a / 4;
+    var sizePass = endW >= thr - 1e-6;
+    var pipeBad = pipeBreaks(s, { tiles:tiles });
+    var pass = sizePass && !pipeBad;
+    var fullCount = tiles.filter(function(t){ return t.full; }).length;
+
+    return {
+      pitchX:pitchX, pitchY:pitchY, tiles:tiles, cols:cols,
+      endW:endW, endIdx:endIdx, endLabel:endLabel, thr:thr, pass:pass,
+      sizePass:sizePass, pipeBad:pipeBad, pipeIdx:findPipeTile(s, {tiles:tiles}),
+      fullCount:fullCount, total:tiles.length
+    };
+  }
+
+  function findPipeTile(s, r){
+    if(!s.pipe) return -1;
+    var px = s.L * s.ppos / 100;
+    for(var i=0;i<r.tiles.length;i++){
+      var t = r.tiles[i];
+      if(px >= t.x - 1e-9 && px <= t.x + t.w + 1e-9) return i;
+    }
+    return r.tiles.length-1;
+  }
+
+  // 管根落在非整砖上 → 违反 P223（3）「管根、槽盒处应整砖套割」
+  function pipeBreaks(s, r){
+    if(!s.pipe) return false;
+    var i = findPipeTile(s, r);
+    if(i < 0) return false;
+    return !r.tiles[i].full;
+  }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, text){
+    var e = document.createElementNS(SVGNS, tag);
+    for(var k in attrs){ if(attrs.hasOwnProperty(k)) e.setAttribute(k, attrs[k]); }
+    if(text != null) e.textContent = text;
+    return e;
+  }
+
+  function draw(s, r){
+    var svg = $('stage-svg');
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var VW = 1000, VH = 620;
+    var padL = 74, padR = 74, padT = 66, padB = 96;
+    var plotW = VW - padL - padR;
+    var plotH = VH - padT - padB;
+
+    var scale = plotW / s.L;
+    var drawW = s.L * scale;
+
+    var pitchY0 = s.b + s.j;
+    // plotH 是像素，pitchY0 是毫米，必须先除以 scale 换算成毫米再算列数
+    var fitMm = plotH / scale;
+    var maxCols = Math.max(1, Math.floor((fitMm + s.j) / pitchY0));
+    var showCols = Math.min(maxCols, 14);
+    var wallH = showCols * pitchY0 - s.j;
+    var drawH = wallH * scale;
+    var ox = padL + (plotW - drawW)/2;
+    var oy = padT + (plotH - drawH)/2;
+
+    var X = function(mm){ return ox + mm*scale; };
+    var Y = function(mm){ return oy + drawH - mm*scale; };
+
+    var danger = !r.pass;
+    // 管根违规：整图不泛红，只把违规的那块砖标橙，避免掩盖"尺寸其实合格"这一教学点
+    var pipeOnly = !r.sizePass ? false : r.pipeBad;
+    var gBg = el('g',{class:'grid-bg'});
+    svg.appendChild(gBg);
+    gBg.appendChild(el('rect',{x:0,y:0,width:VW,height:VH,fill: (danger && !pipeOnly) ? '#2a1518':'#0c141c'}));
+
+    svg.appendChild(el('rect',{x:ox, y:oy, width:drawW, height:drawH,
+      fill: (danger && !pipeOnly) ? '#3a1e21':'#101b24', stroke: (danger && !pipeOnly) ? '#e5484d':'#3a5468','stroke-width':1.6}));
+
+    var gTiles = el('g');
+    svg.appendChild(gTiles);
+
+    var pipeIdx = findPipeTile(s, r);
+    var pipePx = s.L * s.ppos/100;
+
+    for(var ci=0; ci<showCols; ci++){
+      var y0mm = ci*pitchY0;
+      var y1mm = y0mm + s.b;
+      var yTop = Math.min(y1mm, wallH);
+
+      for(var ti=0; ti<r.tiles.length; ti++){
+        var t = r.tiles[ti];
+        if(t.w < 0.4) continue;
+        var rx = X(t.x);
+        var rw = t.w*scale;
+        var ry = Y(yTop);
+        var rh = (yTop - y0mm)*scale;
+
+        var isPipe = (ci === 0) && (ti === pipeIdx) && s.pipe;
+        var isKey = (ti === r.endIdx);
+
+        var baseFill = t.full ? (danger && !pipeOnly ? '#7a3238' : '#dbe7f0')
+                              : (danger && !pipeOnly ? '#a83b42' : '#f0d9a8');
+        if(pipeOnly && ti === pipeIdx && ci === 0) baseFill = '#ffb454';
+        gTiles.appendChild(el('rect',{x:rx, y:ry, width:rw, height:rh,
+          fill:baseFill, stroke: (danger && !pipeOnly) ?'#e5484d':'#93aab9','stroke-width':0.8, rx:0.6}));
+
+        gTiles.appendChild(el('line',{x1:rx, y1:ry, x2:rx+rw, y2:ry+rh,
+          stroke:'rgba(255,255,255,.14)','stroke-width':0.9}));
+        gTiles.appendChild(el('line',{x1:rx+rw, y1:ry, x2:rx, y2:ry+rh,
+          stroke:'rgba(0,0,0,.10)','stroke-width':0.9}));
+
+        if(isKey && !t.full){
+          gTiles.appendChild(el('rect',{x:rx, y:ry, width:rw, height:rh, fill:'none',
+            stroke: danger?'#ffdfe0':'#ff8a3d','stroke-width':2.4, 'stroke-dasharray':'6 4', rx:1}));
+        }
+
+        if(isPipe){
+          drawPipeCut(gTiles, rx, ry, rw, rh, t, s, r, scale);
+          if(!t.full){
+            // 管根骑在非整砖上：整块砖打叉，明确标示不可套割
+            gTiles.appendChild(el('line',{x1:rx+2, y1:ry+2, x2:rx+rw-2, y2:ry+rh-2,
+              stroke:'#ff5c61','stroke-width':3, 'stroke-linecap':'round'}));
+            gTiles.appendChild(el('line',{x1:rx+rw-2, y1:ry+2, x2:rx+2, y2:ry+rh-2,
+              stroke:'#ff5c61','stroke-width':3, 'stroke-linecap':'round'}));
+          }
+        }
+      }
+    }
+
+    drawDimH(svg, X(0), X(s.L), oy + drawH + 42, s.L.toFixed(0)+' mm', danger);
+
+    if(r.endIdx >= 0){
+      var kt = r.tiles[r.endIdx];
+      var kx0 = X(kt.x), kx1 = X(kt.x + kt.w);
+      var kyt = oy - 22;
+      var col = danger ? '#e5484d' : '#26c6a4';
+      svg.appendChild(el('line',{x1:kx0, y1:oy, x2:kx0, y2:kyt-6, stroke:col,'stroke-width':1.2,'stroke-dasharray':'3 3'}));
+      svg.appendChild(el('line',{x1:kx1, y1:oy, x2:kx1, y2:kyt-6, stroke:col,'stroke-width':1.2,'stroke-dasharray':'3 3'}));
+      svg.appendChild(el('line',{x1:kx0, y1:kyt, x2:kx1, y2:kyt, stroke:col,'stroke-width':1.6}));
+      svg.appendChild(el('line',{x1:kx0, y1:kyt-4, x2:kx0, y2:kyt+4, stroke:col,'stroke-width':1.6}));
+      svg.appendChild(el('line',{x1:kx1, y1:kyt-4, x2:kx1, y2:kyt+4, stroke:col,'stroke-width':1.6}));
+      svg.appendChild(el('text',{x:(kx0+kx1)/2, y:kyt-9, fill:col,'font-size':12.5,'font-weight':800,'text-anchor':'middle',
+        'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, r.endW.toFixed(1)+' mm'));
+      svg.appendChild(el('text',{x:(kx0+kx1)/2, y:kyt+17, fill:danger?'#ff9a9d':'#8fe3cc','font-size':11,'text-anchor':'middle',
+        'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, '1/4 砖 = '+r.thr.toFixed(1)+' mm'));
+    }
+
+    var yb = Y(s.b);
+    svg.appendChild(el('line',{x1:ox-16, y1:oy+drawH, x2:ox-16, y2:Y(s.b), stroke:'#5f9bc4','stroke-width':1.4}));
+    svg.appendChild(el('line',{x1:ox-21, y1:oy+drawH, x2:ox-11, y2:oy+drawH, stroke:'#5f9bc4','stroke-width':1.4}));
+    svg.appendChild(el('line',{x1:ox-21, y1:Y(s.b), x2:ox-11, y2:Y(s.b), stroke:'#5f9bc4','stroke-width':1.4}));
+    svg.appendChild(el('text',{x:ox-24, y:(oy+drawH+Y(s.b))/2+4, fill:'#8ec3e8','font-size':11.5,'text-anchor':'end',
+      'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, 'b='+s.b.toFixed(0)));
+
+    svg.appendChild(el('text',{x:padL-30, y:34, fill:'#e8f0f7','font-size':15,'font-weight':800,
+      'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, '内墙饰面砖排砖图'));
+    svg.appendChild(el('text',{x:padL-30, y:52, fill:'#7e94a8','font-size':11.5,
+      'font-family':'PingFang SC, Microsoft YaHei, sans-serif'},
+      (s.mode==='corner'?'起铺：阳角开始（自下而上）':'起铺：中间分中（余量对分）') + '　展示 '+showCols+' 列，砖形等比'));
+
+    var lg = el('g');
+    svg.appendChild(lg);
+    var legendItems = [
+      {c: (danger && !pipeOnly)?'#7a3238':'#dbe7f0', t:'整砖', s:'rect'},
+      {c: (danger && !pipeOnly)?'#a83b42':'#f0d9a8', t:'非整砖（切砖）', s:'rect'},
+      {c:'#ff8a3d', t:'判定块', s:'dash'},
+      {c:'#29b6f6', t:'管根套割', s:'circ'}
+    ];
+    var lx = padL + 150, ly = VH - 34;
+    legendItems.forEach(function(it, idx){
+      var cx = lx + idx*172;
+      if(it.s==='rect'){ lg.appendChild(el('rect',{x:cx,y:ly-11,width:20,height:14,fill:it.c,stroke:'#93aab9','stroke-width':0.8,rx:1})); }
+      else if(it.s==='dash'){ lg.appendChild(el('rect',{x:cx,y:ly-11,width:20,height:14,fill:'none',stroke:it.c,'stroke-width':2,'stroke-dasharray':'4 3',rx:1})); }
+      else { lg.appendChild(el('circle',{cx:cx+10,cy:ly-4,r:7,fill:'none',stroke:it.c,'stroke-width':2})); }
+      lg.appendChild(el('text',{x:cx+27, y:ly+1, fill:'#9fb4c6','font-size':11.5,
+        'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, it.t));
+    });
+
+    if(danger && !pipeOnly){
+      svg.appendChild(el('rect',{x:0,y:0,width:VW,height:4,fill:'#e5484d'}));
+      svg.appendChild(el('rect',{x:0,y:VH-4,width:VW,height:4,fill:'#e5484d'}));
+    }
+    if(pipeOnly){
+      svg.appendChild(el('text',{x:VW-16, y:34, fill:'#ffb454','font-size':12,'font-weight':800,'text-anchor':'end',
+        'font-family':'PingFang SC, Microsoft YaHei, sans-serif'},'⚠ 橙色块＝管根骑在非整砖上，须移位'));
+    }
+  }
+
+  function drawPipeCut(g, rx, ry, rw, rh, t, s, r, scale){
+    var pipePx = s.L * s.ppos/100;
+    var cx = (pipePx - t.x)*scale + rx;
+    var cy = ry + rh/2;
+    var pr = Math.max(11, Math.min(rw, rh) * 0.26);
+    g.appendChild(el('rect',{x:rx+1.5, y:ry+1.5, width:Math.max(0,rw-3), height:Math.max(0,rh-3),
+      fill:'none', stroke:'#29b6f6','stroke-width':2.2, rx:1.5}));
+    g.appendChild(el('circle',{cx:cx, cy:cy, r:pr, fill:'#06121b', stroke:'#29b6f6','stroke-width':2.6}));
+    g.appendChild(el('circle',{cx:cx, cy:cy, r:pr*0.5, fill:'#1b3b4d', stroke:'#7fd6ff','stroke-width':1.4}));
+    g.appendChild(el('line',{x1:cx+pr*0.7, y1:cy-pr*0.7, x2:rx+rw, y2:ry, stroke:'#29b6f6','stroke-width':1.6,'stroke-dasharray':'5 4'}));
+    g.appendChild(el('line',{x1:cx-pr*0.7, y1:cy-pr*0.7, x2:rx, y2:ry, stroke:'#29b6f6','stroke-width':1.6,'stroke-dasharray':'5 4'}));
+    g.appendChild(el('line',{x1:cx+pr*0.7, y1:cy+pr*0.7, x2:rx+rw, y2:ry+rh, stroke:'#29b6f6','stroke-width':1.6,'stroke-dasharray':'5 4'}));
+    g.appendChild(el('line',{x1:cx-pr*0.7, y1:cy+pr*0.7, x2:rx, y2:ry+rh, stroke:'#29b6f6','stroke-width':1.6,'stroke-dasharray':'5 4'}));
+    // 标签放在砖块下方，避开圆孔与红叉
+    g.appendChild(el('text',{x:cx, y:ry + rh + 13, fill:'#7fd6ff','font-size':11,'text-anchor':'middle','font-weight':800,
+      'font-family':'PingFang SC, Microsoft YaHei, sans-serif'},'套割'));
+  }
+
+  function drawDimH(svg, x0, x1, y, text, danger){
+    var col = danger ? '#e5484d' : '#5f9bc4';
+    svg.appendChild(el('line',{x1:x0,y1:y,x2:x1,y2:y,stroke:col,'stroke-width':1.6}));
+    svg.appendChild(el('line',{x1:x0,y1:y-5,x2:x0,y2:y+5,stroke:col,'stroke-width':1.6}));
+    svg.appendChild(el('line',{x1:x1,y1:y-5,x2:x1,y2:y+5,stroke:col,'stroke-width':1.6}));
+    svg.appendChild(el('text',{x:(x0+x1)/2, y:y-8, fill:danger?'#ff9a9d':'#8ec3e8','font-size':12,'text-anchor':'middle','font-weight':700,
+      'font-family':'PingFang SC, Microsoft YaHei, sans-serif'}, text));
+  }
+  function refresh(){
+    var r = computeLayout(S);
+    draw(S, r);
+
+    $('vL').textContent = S.L.toFixed(0);
+    $('va').textContent = S.a.toFixed(0);
+    $('vb').textContent = S.b.toFixed(0);
+    $('vj').textContent = S.j.toFixed(1).replace(/\.0$/,'');
+    $('vp').textContent = S.ppos;
+
+    $('tagMode').textContent = S.mode==='corner' ? '阳角起铺' : '中间分中';
+    $('tagGeo').textContent = '砖 '+S.a.toFixed(0)+'×'+S.b.toFixed(0);
+    $('tagJ').textContent = '缝 '+ (S.j.toFixed(1).replace(/\.0$/,'')) +'mm';
+
+    $('roEndK').textContent = r.endLabel;
+    $('roEnd').innerHTML = r.endW.toFixed(1) + '<small>mm</small>';
+    $('roThr').innerHTML = r.thr.toFixed(1) + '<small>mm</small>';
+    $('roCount').textContent = r.fullCount + ' / ' + r.total;
+    $('roRows').innerHTML = r.cols + '<small>列</small>';
+
+    var stage = $('stage'), verdict = $('verdict');
+    var roEnd = $('roEnd').parentNode, roThr = $('roThr').parentNode;
+    var ab = $('alertbox');
+
+    stage.classList.remove('danger','warn');
+    verdict.classList.remove('ok','bad','warn');
+    roEnd.classList.remove('bad','good');
+    roThr.classList.remove('bad','good');
+
+    if(r.pass){
+      verdict.classList.add('ok');
+      verdict.textContent = '合格 ✓';
+      roEnd.classList.add('good');
+      ab.className = 'alertbox show good';
+      $('alertTitle').textContent = '排砖合格';
+      var pipeTip = S.pipe
+        ? '<br><span style="color:#7fd6ff">管根中心已落在<b>整砖</b>上（图中青色套割框），按 P223（3）采用整砖套割：先开孔、再套贴，孔洞切割整齐不破边。</span>'
+        : '';
+      $('alertBody').innerHTML =
+        (S.mode==='corner'
+          ? '阳角起铺，末块非整砖宽度 <b>'+r.endW.toFixed(1)+' mm</b>。'
+          : '中间分中起铺，较窄一端非整砖宽度 <b>'+r.endW.toFixed(1)+' mm</b>。')
+        + ' 达到 1/4 砖长（'+r.thr.toFixed(1)+' mm）以上，符合《建筑装饰施工技术（第二版）》P223（3）要求，可正常施工。' + pipeTip;
+    } else {
+      if(r.pipeBad && r.sizePass){
+        stage.classList.add('warn');
+        verdict.classList.add('warn');
+        verdict.textContent = '管根不合格 ⚠';
+      } else {
+        stage.classList.add('danger');
+        verdict.classList.add('bad');
+        verdict.textContent = '不合格 ⚠ 报警';
+      }
+      roEnd.classList.add(r.sizePass ? '' : 'bad');
+      roThr.classList.add(r.sizePass ? '' : 'bad');
+      ab.className = 'alertbox show bad';
+
+      if(r.pipeBad && r.sizePass){
+        $('alertTitle').textContent = '⚠ 管根骑在非整砖上，不合格！';
+        $('alertBody').innerHTML =
+          '非整砖宽度 <b>'+r.endW.toFixed(1)+' mm</b>（≥ 1/4 砖长 '+r.thr.toFixed(1)+' mm），<b>尺寸判定本身合格</b>；'+
+          '但管根中心落在<b>非整砖</b>上，只能切砖套割，破边风险高。'+
+          '<br>违反 P223（3）「管根、槽盒处应整砖套割」。'+
+          '<br>调整建议：① 拖动「管根中心位置」滑块，把管根移到<b>整砖</b>中部；② 微调墙面净长或灰缝，使管根落到整砖上；③ 调整砖长规格。';
+      } else {
+        $('alertTitle').textContent = '⚠ 非整砖过窄，不合格！';
+        var adv = (S.mode==='corner')
+          ? '调整建议：① 改用<b>中间分中（余量对分）</b>起铺，让两端各分一半；② 更换砖长规格（如 300 改 200/150）；③ 调整墙面净长余量，使端部非整砖≥ '+r.thr.toFixed(1)+' mm。'
+          : '调整建议：① 改用<b>阳角起铺</b>，把不足整砖的窄条赶到一端（但末块仍须≥ '+r.thr.toFixed(1)+' mm）；② 更换砖长规格；③ 复核墙面净长。';
+        $('alertBody').innerHTML =
+          (S.mode==='corner'
+            ? '阳角起铺，末块非整砖只有 <b>'+r.endW.toFixed(1)+' mm</b>。'
+            : '中间分中起铺，较窄一端非整砖只有 <b>'+r.endW.toFixed(1)+' mm</b>。')
+          + ' 小于 1/4 砖长（'+S.a.toFixed(0)+'÷4 = '+r.thr.toFixed(1)+' mm），<b>违反 P223（3）「非整砖不得小于 1/4 砖」</b>。<br>' + adv;
+      }
+    }
+
+    roThr.className = 'ro ' + (r.pass?'good':'bad');
+    roEnd.className = 'ro hl ' + (r.pass?'':'bad');
+    $('roThr').innerHTML = r.thr.toFixed(1) + '<small>mm</small>';
+  }
+
+  function bindRange(id, key, pctId){
+    var inp = $(id);
+    function upd(){
+      S[key] = parseFloat(inp.value);
+      var pct = (inp.value - inp.min) / (inp.max - inp.min) * 100;
+      inp.style.setProperty('--pct', pct+'%');
+      refresh();
+    }
+    inp.addEventListener('input', upd);
+    upd();
+  }
+  bindRange('L','L');
+  bindRange('a','a');
+  bindRange('b','b');
+  bindRange('j','j');
+  bindRange('ppos','ppos');
+  $('ppos').style.display = 'none';
+
+  $('segMode').addEventListener('click', function(e){
+    var btn = e.target.closest('button'); if(!btn) return;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+    btn.classList.add('on');
+    S.mode = btn.dataset.m;
+    refresh();
+  });
+
+  $('segPipe').addEventListener('click', function(e){
+    var btn = e.target.closest('button'); if(!btn) return;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+    btn.classList.add('on');
+    S.pipe = btn.dataset.p === '1';
+    $('pipePosWrap').style.display = S.pipe ? 'block' : 'none';
+    $('ppos').style.display = S.pipe ? 'block' : 'none';
+    refresh();
+  });
+
+  var presets = [
+    {n:'阳角起铺·合格', v:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:false}},
+    {n:'中间分中·不合格', v:{L:2500,a:300,b:600,j:1.5,mode:'center',pipe:false}},
+    {n:'600大砖·阳角', v:{L:4000,a:600,b:600,j:3,mode:'corner',pipe:false}},
+    {n:'管根骑整砖·合格', v:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:true,ppos:45}},
+    {n:'管根骑非整砖·不合格', v:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:true,ppos:99}},
+    {n:'临界（端砖=1/4砖）', v:{L:2250,a:300,b:600,j:0,mode:'center',pipe:false}}
+  ];
+  var pWrap = $('presets');
+  presets.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.textContent = p.n;
+    btn.addEventListener('click', function(){
+      Object.assign(S, p.v);
+      if('ppos' in p.v) $('ppos').value = p.v.ppos;
+      $('L').value = S.L; $('a').value = S.a; $('b').value = S.b; $('j').value = S.j;
+      Array.prototype.forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.m===S.mode); });
+      Array.prototype.forEach.call($('segPipe').children, function(c){ c.classList.toggle('on', (c.dataset.p==='1')===S.pipe); });
+      $('pipePosWrap').style.display = S.pipe?'block':'none';
+      $('ppos').style.display = S.pipe?'block':'none';
+      ['L','a','b','j','ppos'].forEach(function(id){
+        var inp=$(id); inp.style.setProperty('--pct', ((inp.value-inp.min)/(inp.max-inp.min)*100)+'%');
+      });
+      refresh();
+    });
+    pWrap.appendChild(btn);
+  });
+
+  var QUIZ = [
+    {
+      q:'卫生间内墙净长 3600mm，采用 300×600 饰面砖，灰缝 2mm，从阳角（左端）开始自下而上铺贴。按末块非整砖宽度判定，该排砖是否合格？',
+      opts:['合格（末块约 278mm ≥ 75mm）','不合格（末块约 278mm < 75mm）','不合格（整砖数量不对）','无法判定，需现场实测'],
+      ans:0,
+      exp:'阳角起铺以整砖起步，节距=300+2=302mm；末块宽度=3600−302×11≈278mm，远大于 1/4 砖长（300÷4=75mm），合格。注意四分之一阈值随砖规格变化：300 砖对应 75mm。',
+      demo:{L:3600,a:300,b:600,j:2,mode:'corner'}
+    },
+    {
+      q:'同一墙面（净长 2500mm），改为「中间分中」起铺，300×600 砖、灰缝 1.5mm。此时两端各分一半，端砖约 43mm，判定是否合格（阈值 75mm）？',
+      opts:['合格','不合格，端部非整砖小于 1/4 砖长','合格，因为两端对称','不合格，因为砖缝太窄'],
+      ans:1,
+      exp:'分中起铺时余量对分：端砖 w=[2500−8×300−9×1.5]/2≈43.25mm < 75mm（1/4 砖长），违反 P223（3）「非整砖不得小于 1/4 砖」，不合格。应改为阳角起铺或调整墙长/砖长。',
+      demo:{L:2500,a:300,b:600,j:1.5,mode:'center'}
+    },
+    {
+      q:'600×600 大砖、净长 4000mm、灰缝 3mm，阳角起铺。判定末端非整砖是否合格。此处判定阈值是多少？',
+      opts:['阈值 75mm','阈值 100mm','阈值 150mm','阈值 200mm'],
+      ans:2,
+      exp:'四分之一砖长 = 砖长÷4。600 砖的 1/4 为 150mm（不是 75mm），阈值随砖规格变化。本例阳角起铺：节距=600+3=603mm，自阳角排满 6 块整砖后，末块=4000−603×6=382mm ≥ 150mm，合格。',
+      demo:{L:4000,a:600,b:600,j:3,mode:'corner'}
+    },
+    {
+      q:'净长 3900mm，300×600 砖、灰缝 2mm，从中间分中起铺。端砖约 137mm，是否合格？',
+      opts:['合格，端砖 137mm ≥ 75mm','不合格，端砖 137mm < 75mm','合格，因墙长为偶数','不合格，砖缝不统一'],
+      ans:0,
+      exp:'分中起铺端砖 w=[3900−12×300−13×2]/2=137mm ≥ 75mm，合格。可见中间分中是否合格取决于墙长，必须逐例验算，不能想当然。',
+      demo:{L:3900,a:300,b:600,j:2,mode:'center'}
+    },
+    {
+      q:'下列做法中，符合《建筑装饰施工技术（第二版）》P223（3）要求的是？',
+      opts:['阴角处留 30mm 窄条收口','管根、槽盒处用整砖套割','阳角处从下往上留缝后补','非整砖统一放在视线显著处'],
+      ans:1,
+      exp:'P223（3）明确：非整砖不得小于 1/4 砖；阳角起铺自下而上；管根、槽盒要整砖套割。故正确做法为「管根、槽盒处整砖套割」。窄条（30mm<75mm）不合格，非整砖也应放在不显眼处。',
+      demo:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:true}
+    },
+    {
+      q:'墙面 3600mm、300×600 砖、灰缝 2mm、阳角起铺。末块非整砖 278mm ≥ 75mm，尺寸合格。但管根中心恰好落在那块 278mm 的非整砖上，此时应如何判定？',
+      opts:['合格，尺寸达标即可','不合格，管根应骑整砖套割，骑在非整砖上必然破边','合格，把管根位置挪一挪就行','无法判定，须现场实测'],
+      ans:1,
+      exp:'尺寸判定与管根判定是两条独立要求。末块 278mm ≥ 1/4 砖长 75mm，尺寸本身合格；但 P223（3）同时要求「管根、槽盒处应整砖套割」。管根骑在非整砖上只能切砖开孔，砖边易破，套割不吻合，故整体判定为不合格。处置办法：微调墙面净长或灰缝，让管根正好落在整砖中部。',
+      demo:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:true}
+    },
+    {
+      q:'墙面 3600mm、300×600 砖、灰缝 2mm、阳角起铺，末块 278mm 合格。管根中心落在距阳角 1600mm 处，此时判定为？',
+      opts:['不合格，管根骑在非整砖上','合格，管根已落在整砖中部，可整砖套割','不合格，灰缝 2mm 偏小','合格，但需改用中间分中起铺'],
+      ans:1,
+      exp:'管根中心距阳角 1600mm，落在第 6 块整砖范围内（每块占 302mm，第 6 块覆盖 1510~1810mm），属整砖中部，可按 P223（3）整砖套割，判定合格。说明管根是否违规不看百分比位置，而要看它落在整砖还是非整砖上——拖动课件的「管根中心位置」滑块可以现场验证。',
+      demo:{L:3600,a:300,b:600,j:2,mode:'corner',pipe:true}
+    }
+  ];
+
+  var qState = QUIZ.map(function(){ return {sel:-1, done:false}; });
+
+  function renderQuiz(){
+    var box = $('quiz');
+    box.innerHTML = '';
+    QUIZ.forEach(function(q, qi){
+      var d = document.createElement('div');
+      d.className = 'q';
+      var html = '<div class="qh"><span class="no">Q'+(qi+1)+'.</span><span>'+q.q+'</span></div><div class="opts">';
+      q.opts.forEach(function(o, oi){
+        html += '<div class="opt" data-q="'+qi+'" data-o="'+oi+'"><span class="dot">✓</span><span>'+o+'</span></div>';
+      });
+      html += '</div><div class="fb" id="fb'+qi+'"></div>';
+      d.innerHTML = html;
+      box.appendChild(d);
+    });
+  }
+
+  $('quiz').addEventListener('click', function(e){
+    var opt = e.target.closest('.opt'); if(!opt) return;
+    var qi = +opt.dataset.q, oi = +opt.dataset.o;
+    if(qState[qi].done) return;
+    var q = QUIZ[qi];
+    var qEl = opt.closest('.q');
+    var opts = qEl.querySelectorAll('.opt');
+    qState[qi].done = true; qState[qi].sel = oi;
+
+    Array.prototype.forEach.call(opts, function(o){
+      o.classList.add('locked');
+      var oo = +o.dataset.o;
+      if(oo === q.ans) o.classList.add('right');
+      if(oo === oi && oi !== q.ans) o.classList.add('wrong');
+    });
+    var ok = oi === q.ans;
+    var fb = $('fb'+qi);
+    fb.className = 'fb show ' + (ok?'right':'wrong');
+    fb.innerHTML = '<b>'+(ok?'回答正确':'回答错误')+'</b>，正确答案：' + String.fromCharCode(65+q.ans) + '。<br>' + q.exp;
+    updateScore();
+  });
+
+  function updateScore(){
+    var done = qState.filter(function(s){ return s.done; }).length;
+    var corr = qState.reduce(function(acc,s,i){ return acc + (s.done && s.sel===QUIZ[i].ans ? 1 : 0); },0);
+    $('done').textContent = done;
+    $('correct').textContent = corr;
+    var g = '—';
+    if(done === QUIZ.length){
+      if(corr === QUIZ.length) g = '优秀 ★★★';
+      else if(corr >= QUIZ.length-1) g = '良好 ★★';
+      else if(corr >= Math.ceil(QUIZ.length*0.6)) g = '及格 ★';
+      else g = '需巩固';
+    } else {
+      g = corr + ' / ' + done;
+    }
+    $('grade').textContent = g;
+  }
+
+  $('resetQuiz').addEventListener('click', function(){
+    qState = QUIZ.map(function(){ return {sel:-1, done:false}; });
+    renderQuiz();
+    updateScore();
+  });
+
+  renderQuiz();
+  updateScore();
+  refresh();
+})();
+</script>
+</body>
+</html>
